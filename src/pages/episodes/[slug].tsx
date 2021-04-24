@@ -1,13 +1,14 @@
-import { format, parseISO } from "date-fns";
-import ptBR from "date-fns/locale/pt-BR";
-import Image from "next/image";
-import Link from "next/link";
-import { GetStaticPaths, GetStaticProps } from "next";
-import { useRouter } from "next/router";
-import { api } from "../../services/api";
-import { convertDurationToTimeString } from "../../utils/convertDurationToTimeString";
+import { format, parseISO } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
+import Image from 'next/image';
+import Link from 'next/link';
+import { GetStaticPaths, GetStaticProps } from 'next';
+import { useRouter } from 'next/router';
+import { api } from '../../services/api';
+import { convertDurationToTimeString } from '../../utils/convertDurationToTimeString';
 
-import styles from "./episode.module.scss";
+import styles from './episode.module.scss';
+import { usePlayer } from '../../contexts/PlayerContext';
 
 type Episode = {
   id: string;
@@ -26,6 +27,7 @@ type EpisodeProps = {
 };
 
 export default function Episode({ episode }) {
+  const { play } = usePlayer();
   const router = useRouter();
   return (
     <div className={styles.episode}>
@@ -42,7 +44,7 @@ export default function Episode({ episode }) {
           objectFit="cover"
         />
 
-        <button type="button">
+        <button type="button" onClick={() => play(episode)}>
           <img src="/play.svg" alt="Tocar episódio" />
         </button>
       </div>
@@ -63,11 +65,11 @@ export default function Episode({ episode }) {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const { data } = await api.get("episodes", {
+  const { data } = await api.get('episodes', {
     params: {
       _limit: 2,
-      _sort: "published_at",
-      _order: "desc",
+      _sort: 'published_at',
+      _order: 'desc',
     },
   });
 
@@ -81,7 +83,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
   return {
     paths,
-    fallback: "blocking",
+    fallback: 'blocking',
   };
 };
 
@@ -94,7 +96,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     title: data.title,
     thumbnail: data.thumbnail,
     members: data.members,
-    publishedAt: format(parseISO(data.published_at), "d MMM yy", {
+    publishedAt: format(parseISO(data.published_at), 'd MMM yy', {
       locale: ptBR,
     }),
     duration: Number(data.file.duration),
